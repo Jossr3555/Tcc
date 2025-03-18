@@ -1,0 +1,5 @@
+1. git status
+2. git add .
+3. git commit -m "Atualização do projeto - descrição do que foi alterado"
+4. git push origin main || 5. git push origin master
+
