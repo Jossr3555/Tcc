@@ -15,9 +15,9 @@ const firebaseConfig = {
 };
 
 // Inicializa Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // Firestore para acessar os dados
+export const db = getFirestore(app); // Firestore para acessar os dados
 
 export const validarAcesso = async (email, password) => {
     try {

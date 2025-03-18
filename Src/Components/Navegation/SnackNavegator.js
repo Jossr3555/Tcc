@@ -8,6 +8,9 @@ import WelcomeScreen from '../Pages/PageWelcome/index';
 import LoginScreen from '../Pages/PageLogin/index';
 import HomeScreen from '../Pages/PageHome';
 import warningsScream from '../Pages/PageWarnings';
+import ElectivsScream from '../Pages/PageElectivs';
+import PageEnrollment from '../Pages/PageInscricoes';
+import DethalesScream from '../Pages/PageDethalesElectivs';
 
 // Criando o Stack Navigator
 const Stack = createStackNavigator();
@@ -25,6 +28,38 @@ export default function StackNavegator(){
                 <Stack.Screen 
                     name="Avisos" 
                     component={warningsScream} 
+                    options={{ 
+                        headerShown: true, 
+                        headerStyle: { }, // Exemplo de estilo válido
+                        headerTitleAlign: 'center',
+
+                    }} 
+                />
+
+                <Stack.Screen 
+                    name="Eletivas" 
+                    component={ElectivsScream} 
+                    options={{ 
+                        headerShown: true, 
+                        headerStyle: { }, // Exemplo de estilo válido
+                        headerTitleAlign: 'center',
+
+                    }} 
+                />
+                <Stack.Screen 
+                    name="inscriçoes" 
+                    component={PageEnrollment} 
+                    options={{ 
+                        headerShown: true, 
+                        headerStyle: { }, // Exemplo de estilo válido
+                        headerTitleAlign: 'center',
+
+                    }} 
+                />
+
+                <Stack.Screen 
+                    name="Detalis" 
+                    component={PageEnrollment} 
                     options={{ 
                         headerShown: true, 
                         headerStyle: { }, // Exemplo de estilo válido

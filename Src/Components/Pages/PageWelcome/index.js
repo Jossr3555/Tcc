@@ -72,20 +72,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    paddingHorizontal: '8%',
+    paddingHorizontal: '5%',
     paddingVertical: '5%',
     justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    elevation: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   title: {
-    fontSize: 24, // Tamanho mantido
+    fontSize: 23, // Tamanho mantido
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   textContainer: {
     flexDirection: 'row',
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
   },
   button: {
-    backgroundColor: '#05083A',
+    backgroundColor: '#010222',
     borderRadius: 25,
     paddingVertical: 14, // Botão mais alto para melhor toque
     paddingHorizontal: 40, // Botão mais largo
@@ -113,7 +113,9 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: 200,
     textAlign: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    height: 45,
+    justifyContent: 'center'
   },
   buttonText: {
     fontSize: 20,

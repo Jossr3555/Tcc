@@ -10,6 +10,7 @@ export default function HomeScreen({ navigation }) {
     const student = {
         name: PersonUser.name || 'Aluno Desconhecido',
         rm: PersonUser.rm || '000000',
+        email : PersonUser.email || 'abcd@gmail.com'
     };
 
     return (
@@ -39,6 +40,21 @@ export default function HomeScreen({ navigation }) {
 
             <View style={styles.content}>
                 {/* Sombreamento na parte inferior */}
+
+                <Pressable onPress={()=>navigation.navigate('Eletivas')}>
+                    <Text>
+                        Eletivas
+                    </Text>
+                </Pressable>
+                
+
+                <Pressable onPress={()=>navigation.navigate('inscriçoes')}>
+                    <Text>
+                     inscriçoes
+                    </Text>
+                </Pressable>
+
+
                 <View style={styles.shadowOverlay} />
             </View>
         </View>
@@ -99,12 +115,8 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 15, // Ajuste conforme necessário
-        backgroundColor: "rgba(0, 0, 0, 0.1)", // Cor da sombra
-        shadowColor: "#000", // Somente para iOS
-        shadowOffset: { width: 0, height: -3 }, // Somente para iOS
-        shadowOpacity: 0.2, // Somente para iOS
-        shadowRadius: 4, // Somente para iOS
-        elevation: 5, // Somente para Android
+        height: 0, // Ajuste conforme necessário
+        backgroundColor: "rgb(255, 255, 255)", // Cor da sombra
+        
     },
 });
