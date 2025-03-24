@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Button, Alert, Modal, TouchableOpacity } from 'react-native';
-import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import {
+    View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, Pressable
+} from 'react-native';
+import {
+    getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion
+} from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from '../../DataBase/DataLauncher';
+import { Dialog, Portal, Button } from 'react-native-paper';
 
 export default function ElectivsScream() {
 
     const [eletivas, setEletivas] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [eletivaSelecionada, setEletivaSelecionada] = useState(null);
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const [dialogMessage, setDialogMessage] = useState("");
     const auth = getAuth();
 
-    // Buscar eletivas em tempo real
-    React.useEffect(() => {
+    useEffect(() => {
         const eletivsCollection = collection(db, 'Eletivas');
-
         const unsubscribe = onSnapshot(eletivsCollection, (querySnapshot) => {
             const list = [];
             querySnapshot.forEach((doc) => {
@@ -22,16 +27,31 @@ export default function ElectivsScream() {
             });
             setEletivas(list);
         });
-
         return () => unsubscribe();
     }, []);
 
-    //  Função para inscrever o usuário na eletiva ou colocá-lo na fila de espera
     async function inscreverEletiva(eletivaId, nomeEletiva) {
         try {
             const user = auth.currentUser;
             if (!user) {
-                Alert.alert("Erro", "Usuário não autenticado.");
+                setDialogMessage("Usuário não autenticado.");
+                setDialogVisible(true);
+                return;
+            }
+
+            const userRef = doc(db, "usuarios", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                setDialogMessage("Usuário não encontrado.");
+                setDialogVisible(true);
+                return;
+            }
+
+            const userData = userSnap.data();
+            if (userData.eletivasinscrito?.includes(nomeEletiva)) {
+                setDialogMessage("Você já está inscrito nesta eletiva.");
+                setDialogVisible(true);
                 return;
             }
 
@@ -39,40 +59,36 @@ export default function ElectivsScream() {
             const eletivaSnap = await getDoc(eletivaRef);
 
             if (!eletivaSnap.exists()) {
-                Alert.alert("Erro", "Eletiva não encontrada.");
+                setDialogMessage("Eletiva não encontrada.");
+                setDialogVisible(true);
                 return;
             }
 
             const eletivaData = eletivaSnap.data();
-            const userRef = doc(db, "usuarios", user.uid);
 
             if (eletivaData.Vagas > 0) {
-                // Inscreve normalmente se houver vagas
                 await updateDoc(userRef, {
                     eletivasinscrito: arrayUnion(nomeEletiva)
                 });
-
                 await updateDoc(eletivaRef, {
                     Vagas: eletivaData.Vagas - 1,
                     inscritos: arrayUnion(user.uid)
                 });
-
-                Alert.alert("Sucesso!", `Você se inscreveu em ${nomeEletiva}`);
+                setDialogMessage(`Você se inscreveu em ${nomeEletiva}`);
             } else {
-                // Coloca na fila de espera se não houver vagas
                 await updateDoc(userRef, {
                     eletivasEspera: arrayUnion(nomeEletiva)
                 });
-
                 await updateDoc(eletivaRef, {
                     filaEspera: arrayUnion(user.uid)
                 });
-
-                Alert.alert("Lista de Espera", `As vagas estão cheias. Você foi colocado na fila de espera para ${nomeEletiva}`);
+                setDialogMessage(`As vagas estão cheias. Você foi colocado na fila de espera para ${nomeEletiva}`);
             }
-
+            setDialogVisible(true);
         } catch (error) {
             console.error("Erro ao se inscrever na eletiva:", error);
+            setDialogMessage("Erro ao tentar se inscrever.");
+            setDialogVisible(true);
         }
     }
 
@@ -89,48 +105,58 @@ export default function ElectivsScream() {
                         <Text style={styles.info}>Horário: {item.HorarioInicio} - {item.HorarioFim}</Text>
                         <Text style={styles.info}>Vagas: {item.Vagas}</Text>
 
-                        <Button 
-                            title="Ver Detalhes" 
+                        <Pressable
                             onPress={() => {
                                 setEletivaSelecionada(item);
                                 setModalVisible(true);
-                            }} 
-                        />
+                            }}
+                            style={styles.detailsButton}
+                        >
+                            <Text style={styles.buttonText}>Detalhes</Text>
+                        </Pressable>
                     </View>
                 )}
             />
 
-            {/* Modal de Detalhes */}
+            <Portal>
+                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
+                    <Dialog.Content>
+                        <Text>{dialogMessage}</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setDialogVisible(false)}>OK</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
             <Modal
-                visible={modalVisible}
                 animationType="slide"
                 transparent={true}
+                visible={modalVisible}
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         {eletivaSelecionada && (
                             <>
-                                <Text style={styles.modalTitle}>{eletivaSelecionada.Nome}</Text>
+                                <Text style={styles.title}>{eletivaSelecionada.Nome}</Text>
+                                <Text style={styles.info}>Descrição: {eletivaSelecionada.Descricao}</Text>
+                                <Text style={styles.info}>Professor: {eletivaSelecionada.Professor}</Text>
                                 <Text style={styles.info}>Categoria: {eletivaSelecionada.Categoria}</Text>
                                 <Text style={styles.info}>Dia: {eletivaSelecionada.DiaSemanal}</Text>
                                 <Text style={styles.info}>Horário: {eletivaSelecionada.HorarioInicio} - {eletivaSelecionada.HorarioFim}</Text>
                                 <Text style={styles.info}>Vagas: {eletivaSelecionada.Vagas}</Text>
-
-                                <Button 
-                                    title={eletivaSelecionada.Vagas > 0 ? "Inscrever-se" : "Entrar na Fila de Espera"} 
-                                    onPress={() => {
-                                        inscreverEletiva(eletivaSelecionada.id, eletivaSelecionada.Nome);
-                                        setModalVisible(false);
-                                    }} 
-                                />
-
-                                <TouchableOpacity 
-                                    style={styles.closeButton}
-                                    onPress={() => setModalVisible(false)}
-                                >
-                                    <Text style={styles.closeText}>Fechar</Text>
-                                </TouchableOpacity>
+                                <View style={styles.modalButtons}>
+                                    <Button textColor="#010222"  onPress={() => setModalVisible(false)}>Fechar</Button>
+                                    <Button 
+                                        textColor="#010222"
+                                        onPress={() => {
+                                            if (eletivaSelecionada) {
+                                                inscreverEletiva(eletivaSelecionada.id, eletivaSelecionada.Nome);
+                                                setModalVisible(false);
+                                            }
+                                    }}>Inscrever-se</Button>
+                                </View>
                             </>
                         )}
                     </View>
@@ -143,57 +169,76 @@ export default function ElectivsScream() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        padding: 10,
+        backgroundColor: '#F1F5F9',
+        padding: 15,
     },
     card: {
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#FFFFFF',
         padding: 15,
         borderRadius: 10,
-        marginBottom: 10,
+        marginBottom: 15,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
         elevation: 3,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    info: {
-        fontSize: 14,
-        color: '#333',
+        borderLeftWidth: 5,
+        borderLeftColor: '#FFD700',
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)'
     },
     modalContent: {
-        width: 300,
-        backgroundColor: '#fff',
+        backgroundColor: '#FFFFFF',
         padding: 20,
         borderRadius: 10,
-        alignItems: 'center',
+        width: '80%',
+        alignItems: 'center'
     },
-    modalTitle: {
+    title: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 10,
+        color: '#003366',
+        marginBottom: 5,
     },
-    closeButton: {
-        marginTop: 15,
+    info: {
+        fontSize: 14,
+        color: '#444',
+        marginBottom: 3,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        marginTop: 10,
+    },
+    detailsButton: {
+        backgroundColor: '#003366',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 25,
         padding: 10,
-        backgroundColor: '#ff5252',
-        borderRadius: 5,
+        marginTop: 10, // Adicionei marginTop para separar o botão dos textos
+        alignSelf: 'center', // Centraliza o botão
+        width: '60%' // Defina uma largura para o botão
     },
-    closeText: {
-        color: '#fff',
+    subscribeButton: {
+        backgroundColor: '#4CAF50', // Cor verde para o botão de inscrever
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 25,
+        padding: 10,
+    },
+    buttonText: {
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: 'bold',
     },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+        marginTop: 20,
+    },
 });
-

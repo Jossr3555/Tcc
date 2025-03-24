@@ -1,13 +1,72 @@
-import * as  React from 'react';
-import { View, Text } from 'react-native';
+import * as React from 'react';
+import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import { Card, Title, Paragraph } from 'react-native-paper';
 
-export default function warningsScream({navegation }){
-    return(
-        <View>
-            <Text>
-                Ola 
-            </Text>
-            
-        </View>
+// Nova paleta de cores baseada no site Objetivo Sorocaba
+const colors = {
+    primary: '#002776', // Azul escuro (principal)
+    secondary: '#FFD700', // Amarelo (destaques)
+    background: '#f4f6f6', // Fundo claro
+    cardBackground: '#fff', // Branco para os cartões
+    textPrimary: '#333', // Cinza escuro para textos principais
+    textSecondary: '#666', // Cinza médio para textos secundários
+};
+
+export default function WarningsScreen() {
+    const Avisos = [
+        { id: 1, nome: 'Nova Eletiva disponível', descricao: 'Confira as novas opções de eletivas e faça sua inscrição antes do prazo.' },
+        { id: 2, nome: 'Lembrete: Reunião de pais', descricao: 'A reunião de pais ocorrerá na próxima semana. Verifique os horários disponíveis.' },
+        { id: 3, nome: 'Resultados das avaliações', descricao: 'Os resultados das avaliações do 1º bimestre já estão disponíveis no portal.' },
+    ];
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <FlatList
+                data={Avisos}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <Card style={styles.card}>
+                        <Card.Content>
+                            <Title style={styles.title}>{item.nome}</Title>
+                            <Paragraph style={styles.description}>{item.descricao}</Paragraph>
+                        </Card.Content>
+                    </Card>
+                )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+        </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    card: {
+        backgroundColor: colors.cardBackground,
+        marginHorizontal: 20,
+        marginTop: 15,
+        borderRadius: 8,
+        borderLeftWidth: 5, // Adicionando um detalhe na lateral do card
+        borderLeftColor: colors.secondary, // Amarelo para destacar
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: colors.primary, // Azul escuro nos títulos
+    },
+    description: {
+        fontSize: 14,
+        color: colors.textSecondary,
+        marginTop: 5,
+    },
+    separator: {
+        height: 15,
+    },
+});

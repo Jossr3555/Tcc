@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Alert, Linking } from 'react-native';
+import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { validarAcesso } from '../../DataBase/DataLauncher';
 import { Person } from '../../functions/Objects/pessoa';
+import { PaperProvider, Dialog, Portal, Button } from 'react-native-paper';
 
 export let PersonUser = null;
 
@@ -16,6 +17,17 @@ export default function LoginScreen({ navigation }) {
   const [errorConta, setErrorConta] = useState(false);
   const [errorSenha, setErrorSenha] = useState(false);
   const [invalidCredentials, setInvalidCredentials] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
+
+  const showDialog = (message) => {
+    setDialogMessage(message);
+    setDialogVisible(true);
+  };
+
+  const hideDialog = () => {
+    setDialogVisible(false);
+  };
 
   const handleLogin = async () => {
     setErrorConta(false);
@@ -26,7 +38,7 @@ export default function LoginScreen({ navigation }) {
       if (!conta) setErrorConta(true);
       if (!senha) setErrorSenha(true);
 
-      Alert.alert('Erro', 'Preencha todos os campos!');
+      showDialog('Preencha todos os campos!');
       setTimeout(() => {
         setErrorConta(false);
         setErrorSenha(false);
@@ -36,10 +48,11 @@ export default function LoginScreen({ navigation }) {
 
     if (!conta.includes('@')) {
       setErrorConta(true);
-      Alert.alert('Erro', 'E-mail inválido! Certifique-se de que ele contém "@"');
+      showDialog('E-mail inválido!');
       setTimeout(() => setErrorConta(false), 2000);
       return;
     }
+    
 
     setLoading(true);
     try {
@@ -51,11 +64,11 @@ export default function LoginScreen({ navigation }) {
       } else {
         setInvalidCredentials(true);
         setTimeout(() => setInvalidCredentials(false), 2000);
-        Alert.alert('Erro', resultado.mensagem);
+        showDialog(resultado.mensagem);
       }
     } catch (error) {
       console.error('Erro ao validar acesso:', error);
-      Alert.alert('Erro', 'Ocorreu um problema ao fazer login. Tente novamente.');
+      showDialog('Ocorreu um problema ao fazer login. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -68,6 +81,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
+  <PaperProvider>
     <SafeAreaView style={styles.container}>
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
         <Text style={[styles.title, { color: '#333333' }]}>A sua </Text>
@@ -120,8 +134,21 @@ export default function LoginScreen({ navigation }) {
         </Pressable>
       </Animatable.View>
     </SafeAreaView>
+
+    <Portal>
+      <Dialog visible={dialogVisible} onDismiss={hideDialog}>
+        <Dialog.Title>Aviso</Dialog.Title>
+        <Dialog.Content>
+          <Text>{dialogMessage}</Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={hideDialog}>OK</Button>
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
+  </PaperProvider>
   );
-}
+} 
 
 const styles = StyleSheet.create({
   container: {
@@ -168,36 +195,33 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 16,
     color: '#333333',
-    paddingHorizontal: 10,
-    borderWidth: 0,
-    borderColor: 'transparent',
-    outlineStyle: 'none',
   },
   inputError: {
     borderBottomColor: 'red',
   },
   iconButton: {
-    paddingHorizontal: 10,
+    padding: 10,
   },
   forgotPassword: {
-    textAlign: 'right',
-    color: '#191970',
     fontSize: 14,
-    marginTop: -10,
+    color: '#4A90E2',
+    textAlign: 'right',
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#010222',
-    borderRadius: 25,
-    paddingVertical: 15,
+    backgroundColor: '#010222', // Altere esta cor para a desejada
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
   },
+  
+  buttonDisabled: {
+    backgroundColor: '#B0C4DE',
+  },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#FFFFFF',
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  }
 });
+

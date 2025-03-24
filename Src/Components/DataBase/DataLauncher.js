@@ -2,16 +2,16 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-
+import  {API_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET,SENDER_ID, API_ID , MESAR_ID } from '@env'
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCsi3PRqxi8PgqAS7lMCmQzXZxBny13tcY",
-  authDomain: "myelectives-74e9c.firebaseapp.com",
-  projectId: "myelectives-74e9c",
-  storageBucket: "myelectives-74e9c.firebasestorage.app",
-  messagingSenderId: "329109661930",
-  appId: "1:329109661930:web:d8fbfe3b1264930c368f93",
-  measurementId: "G-3CG0XSJSVJ"
+  apiKey: API_KEY,
+  authDomain: AUTH_DOMAIN,
+  projectId: PROJECT_ID,
+  storageBucket: STORAGE_BUCKET,
+  messagingSenderId: SENDER_ID,
+  appId: API_ID,
+  measurementId: MESAR_ID
 };
 
 // Inicializa Firebase
