@@ -3,7 +3,7 @@ import {
     View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, Pressable
 } from 'react-native';
 import {
-    getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion
+    getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion, arrayRemove
 } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from '../../DataBase/DataLauncher';
@@ -49,8 +49,8 @@ export default function ElectivsScream() {
             }
 
             const userData = userSnap.data();
-            if (userData.eletivasinscrito?.includes(nomeEletiva)) {
-                setDialogMessage("Você já está inscrito nesta eletiva.");
+            if (userData.eletivasinscrito?.includes(nomeEletiva) || userData.eletivasEspera?.includes(nomeEletiva)) {
+                setDialogMessage("Você já está inscrito ou na fila de espera desta eletiva.");
                 setDialogVisible(true);
                 return;
             }
@@ -91,6 +91,71 @@ export default function ElectivsScream() {
             setDialogVisible(true);
         }
     }
+
+    async function removerDaFilaDeEspera(eletivaId, nomeEletiva) {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                setDialogMessage("Usuário não autenticado.");
+                setDialogVisible(true);
+                return;
+            }
+
+            const userRef = doc(db, "usuarios", user.uid);
+            const eletivaRef = doc(db, "Eletivas", eletivaId);
+
+            await updateDoc(userRef, {
+                eletivasEspera: arrayRemove(nomeEletiva)
+            });
+            await updateDoc(eletivaRef, {
+                filaEspera: arrayRemove(user.uid)
+            });
+            setDialogMessage(`Você foi removido da fila de espera de ${nomeEletiva}`);
+            setDialogVisible(true);
+        } catch (error) {
+            console.error("Erro ao remover da fila de espera:", error);
+            setDialogMessage("Erro ao tentar remover da fila de espera.");
+            setDialogVisible(true);
+        }
+    }
+
+    const renderSubscribeButton = (item) => {
+        const user = auth.currentUser;
+        const naFilaDeEspera = user && item.filaEspera?.includes(user.uid);
+
+        if (item.Vagas > 0) {
+            return (
+                <Button
+                    textColor="#010222"
+                    onPress={() => inscreverEletiva(item.id, item.Nome)}
+                >
+                    Inscrever-se
+                </Button>
+            );
+        } else if (naFilaDeEspera) {
+            return (
+                <Button
+                    textColor="#FF0000" // Cor vermelha para indicar remoção
+                    onPress={() => removerDaFilaDeEspera(item.id, item.Nome)}
+                >
+                    Remover da Fila ({item.filaEspera.length})
+                </Button>
+            );
+        } else {
+            return (
+                <Button
+                    textColor="#010222"
+                    onPress={() => inscreverEletiva(item.id, item.Nome)}
+                >
+                    Fila de Espera ({item.filaEspera?.length || 0})
+                </Button>
+            );
+        }
+    };
+
+    const pluralize = (count, singular, plural) => {
+        return count === 1 ? singular : plural;
+    };
 
     return (
         <View style={styles.container}>
@@ -146,16 +211,14 @@ export default function ElectivsScream() {
                                 <Text style={styles.info}>Dia: {eletivaSelecionada.DiaSemanal}</Text>
                                 <Text style={styles.info}>Horário: {eletivaSelecionada.HorarioInicio} - {eletivaSelecionada.HorarioFim}</Text>
                                 <Text style={styles.info}>Vagas: {eletivaSelecionada.Vagas}</Text>
+                                {eletivaSelecionada.Vagas <= 0 && eletivaSelecionada.filaEspera?.length > 0 && (
+                                    <Text style={styles.info}>
+                                        Fila de Espera: {eletivaSelecionada.filaEspera.length} {pluralize(eletivaSelecionada.filaEspera.length, 'aluno(a)', 'alunos(as)')}
+                                    </Text>
+                                )}
                                 <View style={styles.modalButtons}>
-                                    <Button textColor="#010222"  onPress={() => setModalVisible(false)}>Fechar</Button>
-                                    <Button 
-                                        textColor="#010222"
-                                        onPress={() => {
-                                            if (eletivaSelecionada) {
-                                                inscreverEletiva(eletivaSelecionada.id, eletivaSelecionada.Nome);
-                                                setModalVisible(false);
-                                            }
-                                    }}>Inscrever-se</Button>
+                                    <Button textColor="#010222" onPress={() => setModalVisible(false)}>Fechar</Button>
+                                    {renderSubscribeButton(eletivaSelecionada)}
                                 </View>
                             </>
                         )}
@@ -219,12 +282,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderRadius: 25,
         padding: 10,
-        marginTop: 10, // Adicionei marginTop para separar o botão dos textos
-        alignSelf: 'center', // Centraliza o botão
-        width: '60%' // Defina uma largura para o botão
+        marginTop: 10,
+        alignSelf: 'center',
+        width: '60%'
     },
     subscribeButton: {
-        backgroundColor: '#4CAF50', // Cor verde para o botão de inscrever
+        backgroundColor: '#4CAF50',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 25,
