@@ -17,6 +17,13 @@ export default function WarningsScreen() {
         { id: 1, nome: 'Nova Eletiva disponível', descricao: 'Confira as novas opções de eletivas e faça sua inscrição antes do prazo.' },
         { id: 2, nome: 'Lembrete: Reunião de pais', descricao: 'A reunião de pais ocorrerá na próxima semana. Verifique os horários disponíveis.' },
         { id: 3, nome: 'Resultados das avaliações', descricao: 'Os resultados das avaliações do 1º bimestre já estão disponíveis no portal.' },
+        { id: 4, nome: 'Evento Cultural na Escola', descricao: 'Não perca o evento cultural com apresentações de alunos e convidados especiais!' },
+        { id: 5, nome: 'Alteração no Calendário Escolar', descricao: 'Atenção para a alteração nas datas de alguns feriados e recessos. Consulte o novo calendário.' },
+        { id: 6, nome: 'Oficina de Programação para Iniciantes', descricao: 'Inscreva-se na oficina gratuita de programação para iniciantes. Vagas limitadas!' },
+        { id: 7, nome: 'Campanha de Doação de Livros', descricao: 'Participe da nossa campanha de doação de livros para a biblioteca da escola.' },
+        { id: 8, nome: 'Inscrições Abertas para o Grêmio Estudantil', descricao: 'Se você tem ideias e quer representar seus colegas, inscreva-se para o Grêmio Estudantil!' },
+        { id: 9, nome: 'Aviso sobre o Transporte Escolar', descricao: 'Informações importantes sobre o funcionamento do transporte escolar nos próximos dias.' },
+        { id: 10, nome: 'Melhorias na Infraestrutura da Escola', descricao: 'Estamos realizando melhorias em algumas áreas da escola para seu maior conforto.' },
     ];
 
     return (
