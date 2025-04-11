@@ -1,42 +1,66 @@
-import { query, where, getDocs } from "firebase/firestore"; // Importe as funções necessárias
+import { query, where, getDocs } from "firebase/firestore";
 import React, { useState, useEffect } from 'react';
 import {
-    View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, Pressable
+    View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, SafeAreaView
 } from 'react-native';
 import {
-    getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayRemove
+    getFirestore, collection, onSnapshot, doc, updateDoc, arrayRemove
 } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from '../../DataBase/DataLauncher';
-import { Button } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Ou outra biblioteca de ícones
+import { Button, Card, IconButton } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
+
+// Lees Primary Colors (Adapt these based on Objetivo Sorocaba's actual palette)
+const leesPrimary = '#0047AB'; // A strong blue, adjust as needed
+const leesSecondary = '#ADD8E6'; // A lighter blue/cyan, adjust as needed
+const leesAccent = '#FFA500'; // An orange/amber for accents, adjust as needed
+const leesTextPrimary = '#333333';
+const leesTextSecondary = '#666666';
+const leesBackground = '#F5F5F5';
+const leesCardBackground = '#FFFFFF';
+const leesShadow = '#00000026'; // 16% black for subtle shadows
 
 export default function PageEnrollment() {
     const [eletivasInscritas, setEletivasInscritas] = useState([]);
+    const [oficinasInscritas, setOficinasInscritas] = useState([]);
     const [visibleModal, setVisibleModal] = useState(false);
-    const [eletivaToRemove, setEletivaToRemove] = useState(null);
+    const [itemToRemove, setItemToRemove] = useState(null);
+    const [tipoToRemove, setTipoToRemove] = useState("eletiva");
     const [loading, setLoading] = useState(false);
     const [dialogVisible, setDialogVisible] = useState(false);
     const [dialogMessage, setDialogMessage] = useState("");
     const auth = getAuth();
+    const navigation = useNavigation();
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, "usuarios", auth.currentUser?.uid), (docSnap) => {
+        const uid = auth.currentUser?.uid;
+
+        if (!uid) {
+            console.warn("Usuário não autenticado.");
+            return;
+        }
+
+        const unsubscribe = onSnapshot(doc(db, "usuarios", uid), (docSnap) => {
             if (docSnap.exists()) {
-                setEletivasInscritas(docSnap.data().eletivasinscrito || []);
+                const data = docSnap.data();
+                setEletivasInscritas(data.eletivasinscrito || []);
+                setOficinasInscritas(data.oficinasInscrito || []);
             } else {
-                console.log("Usuário não encontrado!");
+                console.log("Usuário não encontrado no Firestore!");
                 setEletivasInscritas([]);
+                setOficinasInscritas([]);
             }
         }, (error) => {
             console.error("Erro ao buscar inscrições:", error);
         });
 
         return () => unsubscribe();
-    }, [auth.currentUser?.uid]);
+    }, [auth.currentUser]);
 
-    async function desinscreverEletiva(nomeEletiva) {
-        if (!nomeEletiva) return;
+    async function desinscreverItem(itemName, collectionName, arrayFieldName) {
+        if (!itemName) return;
         setLoading(true);
         try {
             const user = auth.currentUser;
@@ -49,125 +73,218 @@ export default function PageEnrollment() {
             const userRef = doc(db, "usuarios", user.uid);
 
             await updateDoc(userRef, {
-                eletivasinscrito: arrayRemove(nomeEletiva)
+                [arrayFieldName]: arrayRemove(itemName)
             });
 
-            // Aumentar a vaga na coleção de Eletivas
-            const eletivasQuery = collection(db, 'Eletivas');
-            const q = query(eletivasQuery, where('Nome', '==', nomeEletiva));
+            const itemQuery = collection(db, collectionName);
+            const q = query(itemQuery, where('Nome', '==', itemName));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                querySnapshot.forEach(async (eletivaDoc) => {
-                    const eletivaData = eletivaDoc.data();
-                    if (eletivaData) {
-                        await updateDoc(eletivaDoc.ref, {
-                            Vagas: eletivaData.Vagas + 1,
-                            inscritos: arrayRemove(user.uid)
-                        });
-                    }
+                querySnapshot.forEach(async (itemDoc) => {
+                    const itemData = itemDoc.data();
+                    await updateDoc(itemDoc.ref, {
+                        Vagas: itemData.Vagas + 1,
+                        inscritos: arrayRemove(user.uid)
+                    });
                 });
             }
 
-            setDialogMessage(`Você se desinscreveu de ${nomeEletiva}`);
+            setDialogMessage(`Você se desinscreveu de ${itemName}`);
+        } catch (error) {
+            console.error(`Erro ao se desinscrever de ${collectionName.slice(0, -1).toLowerCase()}:`, error);
+            setDialogMessage("Não foi possível se desinscrever.");
+        } finally {
             setVisibleModal(false);
             setDialogVisible(true);
-        } catch (error) {
-            console.error("Erro ao se desinscrever da eletiva:", error);
-            setDialogMessage("Não foi possível se desinscrever.");
-            setDialogVisible(true);
-        } finally {
             setLoading(false);
         }
     }
 
-    const showModal = (nomeEletiva) => {
-        setEletivaToRemove(nomeEletiva);
+    const showModal = (nome, tipo) => {
+        setItemToRemove(nome);
+        setTipoToRemove(tipo);
         setVisibleModal(true);
     };
 
     const hideModal = () => setVisibleModal(false);
 
     return (
-        <View style={styles.container}>
-            <FlatList
-                data={eletivasInscritas}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                    <View style={styles.card}>
-                        <Text style={styles.eletivaText}>{item}</Text>
-                        <TouchableOpacity onPress={() => showModal(item)} style={styles.deleteButton}>
-                            <Icon name="delete" size={24} color="gray" />
-                        </TouchableOpacity>
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+                {eletivasInscritas.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Eletivas</Text>
+                        <FlatList
+                            data={eletivasInscritas}
+                            keyExtractor={(item, index) => index.toString()}
+                            renderItem={({ item }) => (
+                                <Card style={styles.listItem}>
+                                    <Card.Content>
+                                        <Text style={styles.listItemText}>{item}</Text>
+                                    </Card.Content>
+                                    <Card.Actions style={styles.listItemActions}>
+                                        <IconButton
+                                            icon="delete"
+                                            color={leesAccent}
+                                            size={24}
+                                            onPress={() => showModal(item, 'eletiva')}
+                                        />
+                                    </Card.Actions>
+                                </Card>
+                            )}
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                        />
                     </View>
                 )}
-            />
 
-            <Modal
-                visible={visibleModal}
-                transparent={true}
-                onRequestClose={hideModal}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Confirmar Desinscrição</Text>
-                        <Text style={styles.modalParagraph}>Deseja realmente se desinscrever de <Text style={{ fontWeight: 'bold' }}>{eletivaToRemove}</Text>?</Text>
-                        <View style={styles.modalButtons}>
-                            <Button onPress={hideModal}>Cancelar</Button>
-                            <Button onPress={() => desinscreverEletiva(eletivaToRemove)} loading={loading}>Confirmar</Button>
-                        </View>
+                {oficinasInscritas.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Plantões</Text>
+                        <FlatList
+                            data={oficinasInscritas}
+                            keyExtractor={(item, index) => `of-${index}`}
+                            renderItem={({ item }) => (
+                                <Card style={styles.listItem}>
+                                    <Card.Content>
+                                        <Text style={styles.listItemText}>{item}</Text>
+                                    </Card.Content>
+                                    <Card.Actions style={styles.listItemActions}>
+                                        <IconButton
+                                            icon="delete"
+                                            color={leesAccent}
+                                            size={24}
+                                            onPress={() => showModal(item, 'oficina')}
+                                        />
+                                    </Card.Actions>
+                                </Card>
+                            )}
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                        />
                     </View>
-                </View>
-            </Modal>
+                )}
 
-            {dialogVisible && (
+                {(eletivasInscritas.length === 0 && oficinasInscritas.length === 0) && (
+                    <View style={styles.emptyContainer}>
+                        <Icon name="inbox-arrow-down" size={50} color={leesTextSecondary} />
+                        <Text style={styles.emptyText}>Você não está inscrito em nenhuma eletiva ou plantão.</Text>
+                        <Button
+                            mode="contained"
+                            style={styles.enrollButton}
+                            buttonColor={leesPrimary}
+                            textColor={leesCardBackground}
+                            onPress={() => navigation.navigate('Home')}
+                        >
+                            Encontrar Atividades
+                        </Button>
+                    </View>
+                )}
+
                 <Modal
-                    visible={dialogVisible}
+                    visible={visibleModal}
                     transparent={true}
-                    onRequestClose={() => setDialogVisible(false)}
+                    onRequestClose={hideModal}
                 >
-                    <View style={styles.dialogContainer}>
-                        <View style={styles.dialogContent}>
-                            <Text style={styles.dialogMessage}>{dialogMessage}</Text>
-                            <Button onPress={() => setDialogVisible(false)}>OK</Button>
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Confirmar Desinscrição</Text>
+                            <Text style={styles.modalParagraph}>
+                                Deseja realmente se desinscrever de <Text style={{ fontWeight: 'bold', color: leesPrimary }}>{itemToRemove}</Text>?
+                            </Text>
+                            <View style={styles.modalButtons}>
+                                <Button onPress={hideModal} style={styles.modalButton} textColor={leesTextPrimary}>Cancelar</Button>
+                                <Button
+                                    onPress={() => {
+                                        if (tipoToRemove === 'eletiva') {
+                                            desinscreverItem(itemToRemove, 'Eletivas', 'eletivasinscrito');
+                                        } else {
+                                            desinscreverItem(itemToRemove, 'Oficinas', 'oficinasInscrito');
+                                        }
+                                    }}
+                                    loading={loading}
+                                    mode="contained"
+                                    style={[styles.modalButton, styles.confirmButton]}
+                                    buttonColor={leesAccent}
+                                    textColor={leesCardBackground}
+                                >
+                                    Confirmar
+                                </Button>
+                            </View>
                         </View>
                     </View>
                 </Modal>
-            )}
-        </View>
+
+                {dialogVisible && (
+                    <Modal
+                        visible={dialogVisible}
+                        transparent={true}
+                        onRequestClose={() => setDialogVisible(false)}
+                    >
+                        <View style={styles.dialogContainer}>
+                            <View style={styles.dialogContent}>
+                                <Text style={styles.dialogMessage}>{dialogMessage}</Text>
+                                <Button onPress={() => setDialogVisible(false)} style={styles.dialogButton} textColor={leesTextPrimary}>OK</Button>
+                            </View>
+                        </View>
+                    </Modal>
+                )}
+            </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: leesBackground,
+    },
     container: {
         flex: 1,
-        backgroundColor: '#F1F5F9',
-        padding: 15,
+        padding: 20,
     },
-    card: {
-        backgroundColor: '#FFFFFF',
-        padding: 15,
-        marginVertical: 8,
+    header: {
+        fontSize: 26,
+        fontWeight: 'bold',
+        color: leesPrimary,
+        marginBottom: 25,
+        textAlign: 'center',
+        textShadowColor: leesShadow,
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 2,
+    },
+    section: {
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: leesPrimary,
+        marginBottom: 12,
+        textShadowColor: leesShadow,
+        textShadowOffset: { width: 0.5, height: 0.5 },
+        textShadowRadius: 1,
+    },
+    listItem: {
+        backgroundColor: leesCardBackground,
         borderRadius: 10,
-        shadowColor: "#000",
+        marginBottom: 12,
+        elevation: 4, // More pronounced shadow
+        marginRight: 15,
+        width: 220,
+        shadowColor: leesShadow,
         shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 3,
-        borderLeftWidth: 5,
-        borderLeftColor: '#003366',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
     },
-    eletivaText: {
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#333',
-        flexShrink: 1,
+    listItemText: {
+        fontSize: 17,
+        color: leesTextPrimary,
     },
-    deleteButton: {
-        padding: 8,
+    listItemActions: {
+        justifyContent: 'flex-end',
+        paddingRight: 10,
     },
     modalContainer: {
         flex: 1,
@@ -176,29 +293,43 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
+        backgroundColor: leesCardBackground,
+        padding: 30,
+        borderRadius: 15,
+        width: '88%',
         alignItems: 'center',
+        elevation: 5,
+        shadowColor: leesShadow,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#003366',
-        marginBottom: 10,
-        textAlign: 'center',
+        color: leesPrimary,
+        marginBottom: 20,
+        textShadowColor: leesShadow,
+        textShadowOffset: { width: 0.5, height: 0.5 },
+        textShadowRadius: 1,
     },
     modalParagraph: {
-        fontSize: 16,
-        color: '#444',
-        marginBottom: 20,
+        fontSize: 17,
+        color: leesTextSecondary,
+        marginBottom: 30,
         textAlign: 'center',
     },
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         width: '100%',
+    },
+    modalButton: {
+        borderRadius: 10,
+        paddingHorizontal: 15,
+    },
+    confirmButton: {
+        elevation: 3,
     },
     dialogContainer: {
         flex: 1,
@@ -207,16 +338,43 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     dialogContent: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        borderRadius: 10,
+        backgroundColor: leesCardBackground,
+        padding: 25,
+        borderRadius: 12,
         width: '80%',
         alignItems: 'center',
+        elevation: 3,
+        shadowColor: leesShadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
     },
     dialogMessage: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 17,
+        color: leesTextPrimary,
         marginBottom: 20,
         textAlign: 'center',
+    },
+    dialogButton: {
+        borderRadius: 8,
+        paddingHorizontal: 15,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 30,
+    },
+    emptyText: {
+        fontSize: 17,
+        color: leesTextSecondary,
+        textAlign: 'center',
+        marginTop: 15,
+        marginBottom: 20,
+    },
+    enrollButton: {
+        marginTop: 15,
+        borderRadius: 10,
+        elevation: 2,
     },
 });

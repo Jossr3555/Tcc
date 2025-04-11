@@ -4,6 +4,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import  {API_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET,SENDER_ID, API_ID , MESAR_ID } from '@env'
 // Configuração do Firebase
+
 const firebaseConfig = {
   apiKey: API_KEY,
   authDomain: AUTH_DOMAIN,
@@ -33,7 +34,8 @@ export const validarAcesso = async (email, password) => {
 
         if (userDoc.exists()) {
             const userData = userDoc.data(); 
-            return { sucesso: true, nome: userData.nome, rm: userData.RM };
+            console.log(userData)
+            return { sucesso: true, nome: userData.nome, rm: userData.RM, ano : userData.Ano };
         } else {
             return { sucesso: false, mensagem: "Usuário não encontrado no Firestore" };
         }

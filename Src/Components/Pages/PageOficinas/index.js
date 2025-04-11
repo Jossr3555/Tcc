@@ -1,32 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Modal, Pressable, ScrollView } from 'react-native';
 import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 import { db } from '../../DataBase/DataLauncher';
 import { Dialog, Portal, Button } from 'react-native-paper';
 import { PersonUser } from '../PageLogin';
 
-export default function ElectivsScream() {
-
-    const [eletivas, setEletivas] = useState([]);
+export default function OficinasScrean() {
+    const [oficinas, setOficinas] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
-    const [eletivaSelecionada, setEletivaSelecionada] = useState(null);
+    const [oficinaSelecionada, setOficinaSelecionada] = useState(null);
     const [dialogVisible, setDialogVisible] = useState(false);
     const [dialogMessage, setDialogMessage] = useState("");
     const [userData, setUserData] = useState(null);
     const auth = getAuth();
 
     useEffect(() => {
-        const eletivsCollection = collection(db, 'Eletivas');
-        const unsubscribe = onSnapshot(eletivsCollection, (querySnapshot) => {
+        const oficinasCollection = collection(db, 'Oficinas');
+        const unsubscribe = onSnapshot(oficinasCollection, (querySnapshot) => {
             const list = [];
             querySnapshot.forEach((doc) => {
-                const eletiva = { ...doc.data(), id: doc.id };
-                if (eletiva.AnoDisponivel === PersonUser.ano) {
-                    list.push(eletiva);
+                const oficina = { ...doc.data(), id: doc.id };
+                if (oficina.AnoDisponivel === PersonUser.ano) {
+                    list.push(oficina);
                 }
             });
-            setEletivas(list);
+            setOficinas(list);
         });
 
         const fetchUserData = async () => {
@@ -41,11 +40,10 @@ export default function ElectivsScream() {
         };
 
         fetchUserData();
-
         return () => unsubscribe();
     }, []);
 
-    async function inscreverEletiva(eletivaId, nomeEletiva) {
+    async function inscreverOficina(oficinaId, nomeOficina) {
         try {
             const user = auth.currentUser;
             if (!user) {
@@ -65,62 +63,62 @@ export default function ElectivsScream() {
 
             const userDataAtual = userSnap.data();
 
-            if (userDataAtual.eletivasinscrito?.includes(nomeEletiva) || userDataAtual.eletivasEspera?.includes(nomeEletiva)) {
-                setDialogMessage("Você já está inscrito ou na fila de espera desta eletiva.");
+            if (userDataAtual.oficinasInscrito?.includes(nomeOficina) || userDataAtual.oficinasEspera?.includes(nomeOficina)) {
+                setDialogMessage("Você já está inscrito ou na fila de espera desta oficina.");
                 setDialogVisible(true);
                 return;
             }
 
-            const eletivaRef = doc(db, "Eletivas", eletivaId);
-            const eletivaSnap = await getDoc(eletivaRef);
+            const oficinaRef = doc(db, "Oficinas", oficinaId);
+            const oficinaSnap = await getDoc(oficinaRef);
 
-            if (!eletivaSnap.exists()) {
-                setDialogMessage("Eletiva não encontrada.");
+            if (!oficinaSnap.exists()) {
+                setDialogMessage("Oficina não encontrada.");
                 setDialogVisible(true);
                 return;
             }
 
-            const eletivaData = eletivaSnap.data();
+            const oficinaData = oficinaSnap.data();
 
-            if (eletivaData.Vagas > 0) {
+            if (oficinaData.Vagas > 0) {
                 await updateDoc(userRef, {
-                    eletivasinscrito: arrayUnion(nomeEletiva)
+                    oficinasInscrito: arrayUnion(nomeOficina)
                 });
-                await updateDoc(eletivaRef, {
-                    Vagas: eletivaData.Vagas - 1,
+                await updateDoc(oficinaRef, {
+                    Vagas: oficinaData.Vagas - 1,
                     inscritos: arrayUnion(user.uid)
                 });
 
                 setUserData({
                     ...userDataAtual,
-                    eletivasinscrito: [...(userDataAtual.eletivasinscrito || []), nomeEletiva]
+                    oficinasInscrito: [...(userDataAtual.oficinasInscrito || []), nomeOficina]
                 });
 
-                setDialogMessage(`Você se inscreveu em ${nomeEletiva}`);
+                setDialogMessage(`Você se inscreveu em ${nomeOficina}`);
             } else {
                 await updateDoc(userRef, {
-                    eletivasEspera: arrayUnion(nomeEletiva)
+                    oficinasEspera: arrayUnion(nomeOficina)
                 });
-                await updateDoc(eletivaRef, {
+                await updateDoc(oficinaRef, {
                     filaEspera: arrayUnion(user.uid)
                 });
 
                 setUserData({
                     ...userDataAtual,
-                    eletivasEspera: [...(userDataAtual.eletivasEspera || []), nomeEletiva]
+                    oficinasEspera: [...(userDataAtual.oficinasEspera || []), nomeOficina]
                 });
 
-                setDialogMessage(`As vagas estão cheias. Você foi colocado na fila de espera para ${nomeEletiva}`);
+                setDialogMessage(`As vagas estão cheias. Você foi colocado na fila de espera para ${nomeOficina}`);
             }
             setDialogVisible(true);
         } catch (error) {
-            console.error("Erro ao se inscrever na eletiva:", error);
+            console.error("Erro ao se inscrever na oficina:", error);
             setDialogMessage("Erro ao tentar se inscrever.");
             setDialogVisible(true);
         }
     }
 
-    async function removerDaFilaDeEspera(eletivaId, nomeEletiva) {
+    async function removerDaFilaDeEspera(oficinaId, nomeOficina) {
         try {
             const user = auth.currentUser;
             if (!user) {
@@ -130,21 +128,21 @@ export default function ElectivsScream() {
             }
 
             const userRef = doc(db, "usuarios", user.uid);
-            const eletivaRef = doc(db, "Eletivas", eletivaId);
+            const oficinaRef = doc(db, "Oficinas", oficinaId);
 
             await updateDoc(userRef, {
-                eletivasEspera: arrayRemove(nomeEletiva)
+                oficinasEspera: arrayRemove(nomeOficina)
             });
-            await updateDoc(eletivaRef, {
+            await updateDoc(oficinaRef, {
                 filaEspera: arrayRemove(user.uid)
             });
 
             setUserData({
                 ...userData,
-                eletivasEspera: (userData?.eletivasEspera || []).filter(e => e !== nomeEletiva)
+                oficinasEspera: (userData?.oficinasEspera || []).filter(e => e !== nomeOficina)
             });
 
-            setDialogMessage(`Você foi removido da fila de espera de ${nomeEletiva}`);
+            setDialogMessage(`Você foi removido da fila de espera de ${nomeOficina}`);
             setDialogVisible(true);
         } catch (error) {
             console.error("Erro ao remover da fila de espera:", error);
@@ -156,45 +154,39 @@ export default function ElectivsScream() {
     const renderSubscribeButton = (item) => {
         const user = auth.currentUser;
         const naFilaDeEspera = user && item.filaEspera?.includes(user.uid);
-        const jaInscrito = userData?.eletivasinscrito?.includes(item.Nome);
+        const jaInscrito = userData?.oficinasInscrito?.includes(item.Nome);
 
         if (jaInscrito) {
-            return (
-                <Button disabled textColor="#008000">
-                    Inscrito
-                </Button>
-            );
+            return <Button disabled textColor="#008000">Inscrito</Button>;
         }
 
         if (item.Vagas > 0) {
             return (
-                <Button textColor="#010222" onPress={() => inscreverEletiva(item.id, item.Nome)}>
+                <Button textColor="#010222" onPress={() => inscreverOficina(item.id, item.Nome)}>
                     Inscrever-se
                 </Button>
             );
         } else if (naFilaDeEspera) {
             return (
                 <Button textColor="#FF0000" onPress={() => removerDaFilaDeEspera(item.id, item.Nome)}>
-                    Remover da Fila ({item.filaEspera.length})
+                    Remover da Fila ({item.filaEspera?.length || 0})
                 </Button>
             );
         } else {
             return (
-                <Button textColor="#010222" onPress={() => inscreverEletiva(item.id, item.Nome)}>
+                <Button textColor="#010222" onPress={() => inscreverOficina(item.id, item.Nome)}>
                     Fila de Espera ({item.filaEspera?.length || 0})
                 </Button>
             );
         }
     };
 
-    const pluralize = (count, singular, plural) => {
-        return count === 1 ? singular : plural;
-    };
+    const pluralize = (count, singular, plural) => count === 1 ? singular : plural;
 
     return (
         <View style={styles.container}>
             <FlatList
-                data={eletivas}
+                data={oficinas}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
@@ -208,7 +200,7 @@ export default function ElectivsScream() {
 
                         <Pressable
                             onPress={() => {
-                                setEletivaSelecionada(item);
+                                setOficinaSelecionada(item);
                                 setModalVisible(true);
                             }}
                             style={styles.detailsButton}
@@ -238,26 +230,26 @@ export default function ElectivsScream() {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        {eletivaSelecionada && (
+                        {oficinaSelecionada && (
                             <>
                                 <ScrollView contentContainerStyle={{ paddingBottom: 10 }}>
-                                    <Text style={styles.title}>{eletivaSelecionada.Nome}</Text>
-                                    <Text>Descrição:<Text style={styles.info}> {eletivaSelecionada.descricao}</Text></Text>
-                                    <Text>Professor:<Text style={styles.info}> {eletivaSelecionada.supervisor}</Text></Text>
-                                    <Text>Categoria:<Text style={styles.info}> {eletivaSelecionada.Categoria}</Text></Text>
-                                    <Text>Dia:<Text style={styles.info}> {eletivaSelecionada.DiaSemanal}</Text></Text>
-                                    <Text>Horário:<Text style={styles.info}> {eletivaSelecionada.HorarioInicio} - {eletivaSelecionada.HorarioFim}</Text></Text>
-                                    <Text>Vagas:<Text style={styles.info}> {eletivaSelecionada.Vagas}</Text></Text>
-                                    {eletivaSelecionada.Vagas <= 0 && eletivaSelecionada.filaEspera?.length > 0 && (
+                                    <Text style={styles.title}>{oficinaSelecionada.Nome}</Text>
+                                    <Text>Descrição:<Text style={styles.info}> {oficinaSelecionada.descricao}</Text></Text>
+                                    <Text>Professor:<Text style={styles.info}> {oficinaSelecionada.supervisor}</Text></Text>
+                                    <Text>Categoria:<Text style={styles.info}> {oficinaSelecionada.Categoria}</Text></Text>
+                                    <Text>Dia:<Text style={styles.info}> {oficinaSelecionada.DiaSemanal}</Text></Text>
+                                    <Text>Horário:<Text style={styles.info}> {oficinaSelecionada.HorarioInicio} - {oficinaSelecionada.HorarioFim}</Text></Text>
+                                    <Text>Vagas:<Text style={styles.info}> {oficinaSelecionada.Vagas}</Text></Text>
+                                    {oficinaSelecionada.Vagas <= 0 && oficinaSelecionada.filaEspera?.length > 0 && (
                                         <Text style={styles.info}>
                                             <Text style={{ color: '#000' }}>Fila de Espera: </Text>
-                                            {eletivaSelecionada.filaEspera.length} {pluralize(eletivaSelecionada.filaEspera.length, 'aluno(a)', 'alunos(as)')}
+                                            {oficinaSelecionada.filaEspera.length} {pluralize(oficinaSelecionada.filaEspera.length, 'aluno(a)', 'alunos(as)')}
                                         </Text>
                                     )}
                                 </ScrollView>
                                 <View style={styles.modalButtons}>
                                     <Button textColor="#010222" onPress={() => setModalVisible(false)}>Fechar</Button>
-                                    {renderSubscribeButton(eletivaSelecionada)}
+                                    {renderSubscribeButton(oficinaSelecionada)}
                                 </View>
                             </>
                         )}

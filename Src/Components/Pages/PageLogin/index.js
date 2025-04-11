@@ -59,7 +59,7 @@ export default function LoginScreen({ navigation }) {
       const resultado = await validarAcesso(conta, senha);
       
       if (resultado.sucesso) {
-        PersonUser = new Person(resultado.nome, resultado.rm, conta);
+        PersonUser = new Person(resultado.nome, resultado.rm, conta, resultado.ano);
         navigation.navigate('HomeScreen');
       } else {
         setInvalidCredentials(true);

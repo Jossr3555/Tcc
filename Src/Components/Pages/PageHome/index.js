@@ -1,26 +1,33 @@
 import { PersonUser } from '../PageLogin';
 import * as React from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather'; // Feather Icons
+import { View, Text, StyleSheet, Pressable, Image, ImageBackground  } from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 import CustomModal from './ModalUsuario';
 import { Button } from 'react-native-paper';
 
-// Defina as cores da Objetivo Sorocaba (substitua com as cores reais)
-const primaryColor = '#010222'; // Cor primária (azul escuro)
-const secondaryColor = '#007bff'; // *** VERIFIQUE ESTA COR *** - Substitua pela cor desejada
+const primaryColor = '#010222';
+const secondaryColor = '#007bff';
+const Tercir = '#05083A';
 const textColorPrimary = '#fff';
 const textColorSecondary = primaryColor;
+
+
+
 
 export default function HomeScreen({ navigation }) {
     const [visibleModal, setVisibleModal] = React.useState(false);
 
+    const PrimeyName = PersonUser.name.split(/ (.+)/)[0];
+
     const student = {
-        name: PersonUser.name || 'Aluno Desconhecido',
-        rm: PersonUser.rm || '000000',
-        email: PersonUser.email || 'abcd@gmail.com'
+        name: PersonUser.name,
+        PrimeyName: PrimeyName ,
+        rm: PersonUser.rm ,
+        email: PersonUser.email ,
+        ano : PersonUser.ano
     };
 
-    return (
+    return(
         <View style={styles.container}>
             {/* Modal */}
             <CustomModal visible={visibleModal} hideModal={() => setVisibleModal(false)} student={student} navigation={navigation} />
@@ -33,7 +40,7 @@ export default function HomeScreen({ navigation }) {
                             <Image source={require('../../../Assets/Aluno.webp')} style={styles.avatar} />
                         </View>
                     </Pressable>
-                    <Text style={[styles.username, { color: textColorPrimary }]}>Seja bem-vindo, {student.name}</Text>
+                    <Text style={[styles.username, { color: textColorPrimary }]}>Seja bem-vindo, {student.PrimeyName}</Text>
                 </View>
 
                 <View style={styles.flexSpacer} />
@@ -46,7 +53,7 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             {/* Conteúdo principal */}
-            <View style={styles.content}>
+            <ImageBackground  style={styles.content} source={require('../../../Assets/ImgFundo.png')} >
                 <Button
                     icon="book"
                     mode="contained"
@@ -58,13 +65,46 @@ export default function HomeScreen({ navigation }) {
                     Eletivas
                 </Button>
 
+                <Button
+                    icon="book"
+                    mode="contained"
+                    onPress={() => navigation.navigate('Plantões')}
+                    contentStyle={styles.buttonContent}
+                    style={[styles.primaryButton, { backgroundColor: Tercir }]}
+                    labelStyle={{ color: textColorPrimary, fontWeight: 'bold' }}
+                >
+                    Planões
+                </Button>
+
+                <Button
+                    icon="book"
+                    mode="contained"
+                    onPress={() => navigation.navigate('Oficinas')}
+                    contentStyle={styles.buttonContent}
+                    style={[styles.primaryButton, { backgroundColor: Tercir }]}
+                    labelStyle={{ color: textColorPrimary, fontWeight: 'bold' }}
+                >
+                    Oficinas
+                </Button>
+                
+
                 <Pressable style={styles.cardButton} onPress={() => navigation.navigate('Inscrições')}>
                     <Text style={[styles.cardButtonText, { color: textColorSecondary }]}>Inscrições</Text>
                     {/* Adicione um possível ícone aqui, como um calendário ou checkmark */}
                 </Pressable>
-
+                
+                <Button
+                    icon="book"
+                    mode="contained"
+                    onPress={() => navigation.navigate('Grade Horaria')}
+                    contentStyle={styles.buttonContent}
+                    style={[styles.primaryButton, { backgroundColor: Tercir }]}
+                    labelStyle={{ color: textColorPrimary, fontWeight: 'bold' }}
+                >
+                    Grade Horária
+                </Button>
                 <View style={styles.shadowOverlay} />
-            </View>
+            </ImageBackground >
         </View>
     );
 }
@@ -116,6 +156,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 20, // Aumentei um pouco o gap
         paddingHorizontal: 20, // Adicionei um pouco de padding horizontal
+        resizeMode: 'cover',
     },
     avatarContainer: {
         borderRadius: 25,
