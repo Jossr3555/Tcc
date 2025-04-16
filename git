@@ -1,4 +1,4 @@
 1. git status
 2. git add .
-3. git commit -m "Coreção de erros e melhorias"
+3. git commit -m "Big Update1.1"
 4. git push origin main || 5. git push origin master

@@ -9,7 +9,7 @@ export default function WelcomeScreen({ navigation }) {
       <View style={styles.containerLogo}>
         <Animatable.Image
           animation="flipInY"
-          source={require('../../../Assets/Objetivo.png')}
+          source={require('../../../Assets/Objetivo - Copia.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -121,5 +121,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#fff',
     fontWeight: 'bold',
+    
   },
 });
+
+

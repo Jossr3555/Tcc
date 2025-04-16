@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, Pressable, ScrollView } from 'react-native';
+
 import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+
+
+
+
 import { getAuth } from 'firebase/auth';
 import { db } from '../../DataBase/DataLauncher';
 import { Dialog, Portal, Button } from 'react-native-paper';
@@ -17,6 +22,7 @@ export default function ElectivsScream() {
     const auth = getAuth();
 
     useEffect(() => {
+
         const eletivsCollection = collection(db, 'Eletivas');
         const unsubscribe = onSnapshot(eletivsCollection, (querySnapshot) => {
             const list = [];
