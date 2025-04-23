@@ -61,7 +61,7 @@ const CustomModal = ({ visible, hideModal, student, navigation }) => {
             setShowDialog(false);       // Fecha o Dialog
             hideModal();                // Fecha o Modal principal
             setTimeout(() => {
-        navigation.navigate('LoginScreen');
+        navigation.goBack();
       }, 300);
     }}
   >

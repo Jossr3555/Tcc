@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Linking } from 'react-native';
+import { StyleSheet, View, Text, TextInput, Pressable, ActivityIndicator, Linking, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { validarAcesso } from '../../DataBase/Functions/AuthUser';
 import { Person } from '../../functions/Objects/pessoa';
 import { PaperProvider, Dialog, Portal, Button } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export let PersonUser = null;
 
@@ -57,10 +58,11 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       const resultado = await validarAcesso(conta, senha);
-      
+      await AsyncStorage.setItem('@hasSeenWelcome', 'true');
+    
       if (resultado.sucesso) {
         PersonUser = new Person(resultado.nome, resultado.rm, conta, resultado.ano);
-        navigation.navigate('Eletivas');
+        navigation.navigate('HomeScreen');
       } else {
         setInvalidCredentials(true);
         setTimeout(() => setInvalidCredentials(false), 2000);
@@ -72,6 +74,7 @@ export default function LoginScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
+    
   };
 
   const handleRecuperarSenha = () => {
@@ -133,6 +136,7 @@ export default function LoginScreen({ navigation }) {
           {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.buttonText}>Conectar</Text>}
         </Pressable>
       </Animatable.View>
+      <StatusBar style="light" />
     </SafeAreaView>
 
     <Portal>

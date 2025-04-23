@@ -1,8 +1,38 @@
-import React from 'react';
-import { StyleSheet, View, Text, Pressable, SafeAreaView } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { StyleSheet, View, Text, Pressable, SafeAreaView, BackHandler } from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen({ navigation }) {
+
+  // Verificar se o usuário já viu a tela de boas-vindas
+  useEffect(() => {
+    const checkWelcomeStatus = async () => {
+      const hasSeenWelcome = await AsyncStorage.getItem('@hasSeenWelcome');
+      if (hasSeenWelcome === 'true') {
+        navigation.navigate('LoginScreen');
+      }
+    };
+    checkWelcomeStatus();
+  }, [navigation]);
+
+  // Travar botão de voltar do Android
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => true; // Bloqueia o botão de voltar
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [])
+  );
+
+  // Navegar para a tela de login e salvar que já viu a WelcomeScreen
+  const handleStart = async () => {
+    await AsyncStorage.setItem('@hasSeenWelcome', 'true');
+    navigation.navigate('LoginScreen');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Logo com animação */}
@@ -18,20 +48,23 @@ export default function WelcomeScreen({ navigation }) {
       <Animatable.View
         delay={600}
         animation="fadeInUp"
-        style={styles.containerForm}>
-        <Animatable.Text 
+        style={styles.containerForm}
+      >
+        <Animatable.Text
           delay={1000}
           animation="pulse"
-          style={styles.title}>
+          style={styles.title}
+        >
           A sua jornada começa por você!
         </Animatable.Text>
 
         <View style={styles.textContainer}>
           <Text style={styles.text}>Seja o </Text>
-          <Animatable.Text 
+          <Animatable.Text
             delay={1000}
             animation="pulse"
-            style={styles.textHighlight}>
+            style={styles.textHighlight}
+          >
             autor
           </Animatable.Text>
           <Text style={styles.text}> da sua própria história!</Text>
@@ -40,16 +73,16 @@ export default function WelcomeScreen({ navigation }) {
         {/* Botão de iniciar */}
         <Pressable
           style={styles.button}
-          onPress={() => navigation.navigate('LoginScreen')}
+          onPress={handleStart}
           accessibilityLabel="Iniciar navegação para a tela inicial"
-          accessible={true}>
+          accessible={true}
+        >
           <Text style={styles.buttonText}>Iniciar</Text>
         </Pressable>
-
       </Animatable.View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -61,11 +94,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: '5%',
-    borderRadius: 30
+    borderRadius: 30,
   },
   logo: {
     width: '80%',
-    maxHeight: 220, // Limite de altura ajustado
+    maxHeight: 220,
   },
   containerForm: {
     flex: 2,
@@ -82,7 +115,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   title: {
-    fontSize: 23, // Tamanho mantido
+    fontSize: 23,
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 15,
@@ -103,8 +136,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#010222',
     borderRadius: 25,
-    paddingVertical: 14, // Botão mais alto para melhor toque
-    paddingHorizontal: 40, // Botão mais largo
+    paddingVertical: 14,
+    paddingHorizontal: 40,
     alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -112,17 +145,13 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
     width: 200,
-    textAlign: 'center',
     alignItems: 'center',
     height: 45,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   buttonText: {
     fontSize: 20,
     color: '#fff',
-    fontWeight: 'bold',
-    
+    fontWeight: 'bold', 
   },
 });
-
-
