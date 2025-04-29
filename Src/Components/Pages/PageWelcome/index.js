@@ -1,37 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, View, Text, Pressable, SafeAreaView, BackHandler } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import { useFocusEffect } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen({ navigation }) {
-
-  // Verificar se o usuário já viu a tela de boas-vindas
-  useEffect(() => {
-    const checkWelcomeStatus = async () => {
-      const hasSeenWelcome = await AsyncStorage.getItem('@hasSeenWelcome');
-      if (hasSeenWelcome === 'true') {
-        navigation.navigate('LoginScreen');
-      }
-    };
-    checkWelcomeStatus();
-  }, [navigation]);
-
-  // Travar botão de voltar do Android
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => true; // Bloqueia o botão de voltar
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [])
-  );
-
-  // Navegar para a tela de login e salvar que já viu a WelcomeScreen
-  const handleStart = async () => {
-    await AsyncStorage.setItem('@hasSeenWelcome', 'true');
-    navigation.navigate('LoginScreen');
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,7 +10,7 @@ export default function WelcomeScreen({ navigation }) {
       <View style={styles.containerLogo}>
         <Animatable.Image
           animation="flipInY"
-          source={require('../../../Assets/Objetivo - Copia.png')}
+          source={require('../../../Assets/IconImage.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -73,7 +44,7 @@ export default function WelcomeScreen({ navigation }) {
         {/* Botão de iniciar */}
         <Pressable
           style={styles.button}
-          onPress={handleStart}
+          onPress={()=>navigation.navigate('LoginScreen')}
           accessibilityLabel="Iniciar navegação para a tela inicial"
           accessible={true}
         >

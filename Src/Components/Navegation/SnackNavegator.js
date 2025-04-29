@@ -21,38 +21,11 @@ import OficinasScrean from '../Pages/PageOficinas';
 const Stack = createStackNavigator();
 
 export default function StackNavegator() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
-
-  useEffect(() => {
-    const checkWelcome = async () => {
-      try {
-        const seen = await AsyncStorage.getItem('@hasSeenWelcome');
-        console.log('Valor de @hasSeenWelcome:', seen); // Debug opcional
-        setHasSeenWelcome(seen === 'true'? true : false);
-      } catch (error) {
-        console.log('Erro ao acessar AsyncStorage:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkWelcome();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <PaperProvider>
       <ToastProvider>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName={hasSeenWelcome ? 'LoginScreen' : 'WelcomeScreen'}>
+          <Stack.Navigator initialRouteName='WelcomeScreen'>
             <Stack.Screen
               name="WelcomeScreen"
               component={WelcomeScreen}
@@ -66,7 +39,7 @@ export default function StackNavegator() {
             <Stack.Screen
               name="HomeScreen"
               component={HomeScreen}
-              options={{ headerShown: false, gestureEnabled: false }}
+              options={{ headerShown: false}}
             />
             <Stack.Screen
               name="Avisos"
