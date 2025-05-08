@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "MyElectives",
+    "slug": "MyElectives",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/IconApp.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/IconApp.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/IconApp.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/IconApp.png"
+    }
+  }
+}
