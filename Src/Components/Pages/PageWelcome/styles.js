@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2023597 (meu amor)
 export const styles = StyleSheet.create({
     container: {
       flex: 1,

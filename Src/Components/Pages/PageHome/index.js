@@ -3,8 +3,15 @@ import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { BottomNavigation, Provider as PaperProvider } from 'react-native-paper';
 import Feather from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+<<<<<<< HEAD
 import CustomModal from './ModalUsuario';  // Se necessário
 import { PersonUser } from '../PageLogin'; // Se necessário
+=======
+import CustomModal from './ModalUsuario';
+import { PersonUser } from '../PageLogin';
+import PageEnrollment from '../PageInscricoes';
+import TimeGradeScreen from '../PageTimeGrade';
+>>>>>>> 2023597 (meu amor)
 
 const InicioRoute = ({ navigation }) => {
   const [visibleModal, setVisibleModal] = React.useState(false);
@@ -73,6 +80,7 @@ const InicioRoute = ({ navigation }) => {
 };
 
 const InscricoesRoute = () => (
+<<<<<<< HEAD
   <View style={styles.centeredScreen}>
     <Text style={styles.routeText}>Minhas Inscrições</Text>
   </View>
@@ -87,6 +95,21 @@ const NotificacoesRoute = () => (
 function MainApp({ navigation }) {
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
+=======
+  <PageEnrollment/>
+);
+
+const NotificacoesRoute = () => (
+  <TimeGradeScreen/>
+);
+
+function MainApp({ navigation }) {
+
+  const [index, setIndex] = React.useState(0);
+
+  const [routes] = React.useState([
+
+>>>>>>> 2023597 (meu amor)
     {
       key: 'inicio',
       title: 'Início',
@@ -99,7 +122,11 @@ function MainApp({ navigation }) {
     },
     {
       key: 'notificacoes',
+<<<<<<< HEAD
       title: 'Notificações',
+=======
+      title: 'Grade Horaría',
+>>>>>>> 2023597 (meu amor)
       icon: ({ color, size }) => <Icon name="bell-outline" color={color} size={size} />,
     },
   ]);
@@ -108,6 +135,10 @@ function MainApp({ navigation }) {
     inicio: () => <InicioRoute navigation={navigation} />,
     inscricoes: InscricoesRoute,
     notificacoes: NotificacoesRoute,
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 2023597 (meu amor)
   });
 
   return (

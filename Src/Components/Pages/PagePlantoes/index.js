@@ -233,10 +233,17 @@ const styles = StyleSheet.create({
         marginRight: -15,
     },
     modalInfo: {
+<<<<<<< HEAD
         marginTop: 20,
     },
     infoRow: {
         marginBottom: 18,
+=======
+        marginTop: 6,
+    },
+    infoRow: {
+        marginBottom: 12,
+>>>>>>> 2023597 (meu amor)
     },
     infoLabel: {
         fontSize: 18,

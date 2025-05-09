@@ -23,7 +23,11 @@ export default function StackNavegator() {
     <PaperProvider>
       <ToastProvider>
         <NavigationContainer>
+<<<<<<< HEAD
           <Stack.Navigator initialRouteName='HomeScreen'>
+=======
+          <Stack.Navigator initialRouteName='WelcomeScreen'>
+>>>>>>> 2023597 (meu amor)
             <Stack.Screen
               name="WelcomeScreen"
               component={WelcomeScreen}
