@@ -3,15 +3,10 @@ import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { BottomNavigation, Provider as PaperProvider } from 'react-native-paper';
 import Feather from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-<<<<<<< HEAD
-import CustomModal from './ModalUsuario';  // Se necessário
-import { PersonUser } from '../PageLogin'; // Se necessário
-=======
 import CustomModal from './ModalUsuario';
 import { PersonUser } from '../PageLogin';
 import PageEnrollment from '../PageInscricoes';
 import TimeGradeScreen from '../PageTimeGrade';
->>>>>>> 2023597 (meu amor)
 
 const InicioRoute = ({ navigation }) => {
   const [visibleModal, setVisibleModal] = React.useState(false);
@@ -80,22 +75,6 @@ const InicioRoute = ({ navigation }) => {
 };
 
 const InscricoesRoute = () => (
-<<<<<<< HEAD
-  <View style={styles.centeredScreen}>
-    <Text style={styles.routeText}>Minhas Inscrições</Text>
-  </View>
-);
-
-const NotificacoesRoute = () => (
-  <View style={styles.centeredScreen}>
-    <Text style={styles.routeText}>Notificações</Text>
-  </View>
-);
-
-function MainApp({ navigation }) {
-  const [index, setIndex] = React.useState(0);
-  const [routes] = React.useState([
-=======
   <PageEnrollment/>
 );
 
@@ -108,37 +87,20 @@ function MainApp({ navigation }) {
   const [index, setIndex] = React.useState(0);
 
   const [routes] = React.useState([
+    
+    {key: 'inicio', title: 'Início',icon: 'home'},
 
->>>>>>> 2023597 (meu amor)
-    {
-      key: 'inicio',
-      title: 'Início',
-      icon: ({ color, size }) => <Icon name="home" color={color} size={size} />,
-    },
-    {
-      key: 'inscricoes',
-      title: 'Minhas Inscrições',
-      icon: ({ color, size }) => <Icon name="book-open-blank-variant" color={color} size={size} />,
-    },
-    {
-      key: 'notificacoes',
-<<<<<<< HEAD
-      title: 'Notificações',
-=======
-      title: 'Grade Horaría',
->>>>>>> 2023597 (meu amor)
-      icon: ({ color, size }) => <Icon name="bell-outline" color={color} size={size} />,
-    },
+    {key: 'inscricoes',title: 'Minhas Inscrições',icon: "book-open-blank-variant"},
+
+    {key: 'notificacoes',title: 'Grade Horaría',icon: "bell-outline"},
+
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
     inicio: () => <InicioRoute navigation={navigation} />,
     inscricoes: InscricoesRoute,
     notificacoes: NotificacoesRoute,
-<<<<<<< HEAD
-=======
     
->>>>>>> 2023597 (meu amor)
   });
 
   return (
