@@ -102,7 +102,7 @@ function MainApp({ navigation }) {
     notificacoes: NotificacoesRoute,
     
   });
-
+// 
   return (
     <BottomNavigation
       navigationState={{ index, routes }}
