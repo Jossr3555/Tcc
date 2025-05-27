@@ -100,7 +100,7 @@ export default function LoginScreen({ navigation }) {
     }, []);
 
   return (
-  <PaperProvider>
+  <PaperProvider them="light">
     <SafeAreaView style={styles.container}>
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
         <Text style={[styles.title, { color: '#333333' }]}>A sua </Text>
