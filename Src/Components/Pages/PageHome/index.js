@@ -134,7 +134,7 @@ function MainApp({ navigation }) {
 
 export default function AppWrapper({ navigation }) {
   return (
-    <PaperProvider>
+    <PaperProvider them="Light">
       <MainApp navigation={navigation} />
     </PaperProvider>
   );
