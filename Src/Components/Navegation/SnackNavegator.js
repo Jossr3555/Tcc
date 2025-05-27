@@ -20,7 +20,7 @@ const Stack = createStackNavigator();
 
 export default function StackNavegator() {
   return (
-    <PaperProvider>
+    <PaperProvider them="light">
       <ToastProvider>
         <NavigationContainer>
           <Stack.Navigator initialRouteName='WelcomeScreen'>
